@@ -14,7 +14,8 @@ class ViewController: UIViewController {
     private var results = [Result]()
     private var viewModel = [PhotosCellViewModel]()
     private let photosCellIdentifier = "PhotosCell"
-    private var searchController = UISearchController(searchResultsController: nil)
+    private var searchController = UISearchController()
+    private let searchBar = UISearchBar()
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -31,23 +32,11 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = "Search Image"
-        fetchData()
         view.addSubview(collectionView)
         collectionView.fillSuperview()
-        
         configureSearchController()
-        
     }
 
-    //MARK: - API
-    private func fetchData(){
-        APICaller.shared.fetchPhotos { results in
-            DispatchQueue.main.async {
-                self.results = results
-                self.collectionView.reloadData()
-            }
-        }
-    }
     
     //MARK: - Helpers
     func configureSearchController() {
@@ -55,10 +44,8 @@ class ViewController: UIViewController {
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.searchBar.placeholder = "Search"
-        searchController.searchBar.delegate = self
         navigationItem.searchController = searchController
         definesPresentationContext = false
-        
     }
 }
 
@@ -70,7 +57,7 @@ extension ViewController: UICollectionViewDataSource{
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: photosCellIdentifier, for: indexPath) as! PhotosCell
-        let resultUrl = results[indexPath.row].urls.regular
+        let resultUrl = results[indexPath.row].urls.small
         cell.viewModel = PhotosCellViewModel(result: resultUrl)
         return cell
     }
@@ -80,11 +67,18 @@ extension ViewController: UICollectionViewDataSource{
 //MARK: - UISearchResultUpdating
 extension ViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-      
+        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
+        APICaller.shared.fetchPhotos(query: searchText) { results in
+            if results.count > 0 {
+                DispatchQueue.main.async {
+                    self.results = results
+                }
+            }
+        }
+        self.collectionView.reloadData()
     }
    
 }
-
 
 //MARK: -UICollectionViewDelegateFlowLayout
 extension ViewController: UICollectionViewDelegateFlowLayout{
@@ -101,11 +95,3 @@ extension ViewController: UICollectionViewDelegateFlowLayout{
     }
 }
 
-//MARK: - UISearchBarDelegate
-extension ViewController: UISearchBarDelegate{
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-    }
-    
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-    }
-}

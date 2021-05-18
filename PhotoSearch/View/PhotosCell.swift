@@ -6,7 +6,7 @@
 //
 
 import UIKit
-import SDWebImage
+
 
 struct PhotosCellViewModel {
     
@@ -15,8 +15,8 @@ struct PhotosCellViewModel {
     var imageUrl: URL? {
         return URL(string: result)
     }
+ 
 }
-
 
 class PhotosCell: UICollectionViewCell {
     //MARK: -properties
@@ -46,7 +46,6 @@ class PhotosCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    
     //MARK: - Helpers
     func setupView() {
         addSubview(photosResult)
@@ -57,6 +56,8 @@ class PhotosCell: UICollectionViewCell {
     }
     func configure(){
         guard let viewModel = viewModel else { return }
-        photosResult.sd_setImage(with: viewModel.imageUrl)
+        guard let imageUrl = viewModel.imageUrl else { return }
+        photosResult.load(url: imageUrl)
     }}
+
 

@@ -16,16 +16,13 @@ final class APICaller {
     struct Constants {
         static let baseUrl =  "https://api.unsplash.com/search/photos?page=1&per_page=50"
         static let client_id = "5x0qTjZ4lBpLkSSs6zu_AWIf3ZEPWFDty5Iy9UquPTk"
-        static let endPoint = "office"
-    
     }
     enum APIError: Error {
         case invalidUrl
     }
 
-    public func fetchPhotos(completion: @escaping ([Result]) -> Void) {
-        
-        guard let url = URL(string: Constants.baseUrl  + "&query=" + Constants.endPoint + "&client_id=" + Constants.client_id) else {
+    public func fetchPhotos(query: String, completion: @escaping ([Result]) -> Void) {
+        guard let url = URL(string: Constants.baseUrl  + "&query=" + query + "&client_id=" + Constants.client_id) else {
             return
         }
         let task = URLSession.shared.dataTask(with: url) {data, _, error in
@@ -36,7 +33,6 @@ final class APICaller {
                 let photoResultsData = response.results
                 completion(photoResultsData)
             }catch {
-               print(error)
             }
         }
         task.resume()
